@@ -2,30 +2,41 @@
 <html>
 
 <head>
+
 <title>African Gold Wheel Simulator</title>
 
 <style>
 
 body{
-font-family:Arial;
-background:#111;
+background:#121212;
 color:white;
+font-family:Arial;
 text-align:center;
 }
 
 canvas{
-margin-top:30px;
+margin-top:20px;
 }
 
 button{
 padding:12px 25px;
 font-size:18px;
-margin-top:20px;
+margin-top:10px;
 cursor:pointer;
+background:gold;
+border:none;
 }
 
-#stats{
-margin-top:30px;
+#history{
+max-height:120px;
+overflow:auto;
+border:1px solid #444;
+margin-top:10px;
+padding:5px;
+}
+
+.statbox{
+margin-top:15px;
 }
 
 </style>
@@ -36,29 +47,43 @@ margin-top:30px;
 
 <h1>African Gold Wheel Simulator</h1>
 
-<p>Bet Amount</p>
+BET
+
+<br>
 
 <input id="bet" type="number" value="1" min="1">
 
-<br><br>
+<br>
 
 <button onclick="spin()">SPIN</button>
+
+<button onclick="runSimulation()">Run 10,000 Spin Test</button>
 
 <canvas id="wheel" width="500" height="500"></canvas>
 
 <h2 id="result"></h2>
 
-<div id="stats">
+<div class="statbox">
 
-<h3>Statistics</h3>
+Total Spins:
+<span id="spins">0</span>
 
-<p>Total Spins: <span id="spins">0</span></p>
+<br>
 
-<p>Total Profit: <span id="profit">0</span></p>
-
-<p>Last Multiplier: <span id="last">0</span></p>
+Total Profit:
+<span id="profit">0</span>
 
 </div>
+
+<h3>Spin History</h3>
+
+<div id="history"></div>
+
+<h3>Probability Tracker</h3>
+
+<div id="prob"></div>
+
+<audio id="spinSound" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
 
 <script>
 
@@ -86,6 +111,12 @@ let startAngle=0;
 let spins=0;
 let profit=0;
 
+let history=[];
+
+let counts={};
+
+segments.forEach(x=>counts[x]=0);
+
 function drawWheel(){
 
 let arc=2*Math.PI/segments.length;
@@ -98,7 +129,6 @@ ctx.beginPath();
 ctx.fillStyle=colors[i%colors.length];
 
 ctx.moveTo(250,250);
-
 ctx.arc(250,250,250,angle,angle+arc);
 
 ctx.fill();
@@ -106,7 +136,6 @@ ctx.fill();
 ctx.save();
 
 ctx.translate(250,250);
-
 ctx.rotate(angle+arc/2);
 
 ctx.fillStyle="black";
@@ -119,9 +148,35 @@ ctx.restore();
 
 }
 
+function drawPointer(){
+
+ctx.fillStyle="red";
+
+ctx.beginPath();
+
+ctx.moveTo(250,0);
+ctx.lineTo(230,40);
+ctx.lineTo(270,40);
+
+ctx.fill();
+
+}
+
+function render(){
+
+ctx.clearRect(0,0,500,500);
+
 drawWheel();
 
+drawPointer();
+
+}
+
+render();
+
 function spin(){
+
+document.getElementById("spinSound").play();
 
 let bet=parseFloat(document.getElementById("bet").value);
 
@@ -141,9 +196,7 @@ let rotation=spinAngle*(progress/duration);
 
 startAngle=rotation*Math.PI/180;
 
-ctx.clearRect(0,0,500,500);
-
-drawWheel();
+render();
 
 if(progress<duration){
 
@@ -167,11 +220,17 @@ let index=Math.floor(Math.random()*segments.length);
 
 let multiplier=segments[index];
 
+counts[multiplier]++;
+
 let win=bet*multiplier;
 
 profit+=win-bet;
 
 spins++;
+
+history.unshift(multiplier);
+
+if(history.length>20) history.pop();
 
 document.getElementById("result").innerText="Multiplier x"+multiplier+" | Win: "+win;
 
@@ -179,7 +238,43 @@ document.getElementById("spins").innerText=spins;
 
 document.getElementById("profit").innerText=profit.toFixed(2);
 
-document.getElementById("last").innerText=multiplier;
+updateHistory();
+
+updateProb();
+
+}
+
+function updateHistory(){
+
+document.getElementById("history").innerHTML=
+
+history.map(x=>"x"+x).join(" | ");
+
+}
+
+function updateProb(){
+
+let txt="";
+
+for(let k in counts){
+
+let p=(counts[k]/spins*100)||0;
+
+txt+="x"+k+" → "+p.toFixed(2)+"%<br>";
+
+}
+
+document.getElementById("prob").innerHTML=txt;
+
+}
+
+function runSimulation(){
+
+for(let i=0;i<10000;i++){
+
+finishSpin(1);
+
+}
 
 }
 
