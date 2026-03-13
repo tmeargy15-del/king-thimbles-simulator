@@ -1,65 +1,190 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<title>African Gold Simulator</title>
+<title>African Gold Wheel Simulator</title>
 
 <style>
 
 body{
 font-family:Arial;
-text-align:center;
 background:#111;
 color:white;
+text-align:center;
+}
+
+canvas{
+margin-top:30px;
 }
 
 button{
-padding:15px;
+padding:12px 25px;
 font-size:18px;
 margin-top:20px;
 cursor:pointer;
 }
 
-#result{
-font-size:30px;
+#stats{
 margin-top:30px;
-color:gold;
 }
 
 </style>
+
 </head>
 
 <body>
 
 <h1>African Gold Wheel Simulator</h1>
 
-<p>Multipliers: 2.5 , 4 , 4.8 , 12 , 24 , 48 , 300 , 1500</p>
+<p>Bet Amount</p>
+
+<input id="bet" type="number" value="1" min="1">
+
+<br><br>
 
 <button onclick="spin()">SPIN</button>
 
-<div id="result"></div>
+<canvas id="wheel" width="500" height="500"></canvas>
+
+<h2 id="result"></h2>
+
+<div id="stats">
+
+<h3>Statistics</h3>
+
+<p>Total Spins: <span id="spins">0</span></p>
+
+<p>Total Profit: <span id="profit">0</span></p>
+
+<p>Last Multiplier: <span id="last">0</span></p>
+
+</div>
 
 <script>
 
-const wheel=[
-2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,
-4,4,4,4,4,4,4,4,4,4,
-4.8,4.8,4.8,4.8,4.8,4.8,4.8,4.8,
-12,12,12,12,12,
-24,24,24,
-48,48,
+const segments=[
+2.5,2.5,2.5,2.5,2.5,2.5,
+4,4,4,4,4,
+4.8,4.8,4.8,4.8,
+12,12,12,
+24,24,
+48,
 300,
 1500
 ];
 
+const colors=[
+"#f4d03f","#f5b041","#af7ac5","#48c9b0",
+"#5dade2","#ec7063","#58d68d","#f7dc6f"
+];
+
+let wheel=document.getElementById("wheel");
+let ctx=wheel.getContext("2d");
+
+let startAngle=0;
+
+let spins=0;
+let profit=0;
+
+function drawWheel(){
+
+let arc=2*Math.PI/segments.length;
+
+for(let i=0;i<segments.length;i++){
+
+let angle=startAngle+i*arc;
+
+ctx.beginPath();
+ctx.fillStyle=colors[i%colors.length];
+
+ctx.moveTo(250,250);
+
+ctx.arc(250,250,250,angle,angle+arc);
+
+ctx.fill();
+
+ctx.save();
+
+ctx.translate(250,250);
+
+ctx.rotate(angle+arc/2);
+
+ctx.fillStyle="black";
+
+ctx.fillText("x"+segments[i],150,0);
+
+ctx.restore();
+
+}
+
+}
+
+drawWheel();
+
 function spin(){
 
-let result=wheel[Math.floor(Math.random()*wheel.length)];
+let bet=parseFloat(document.getElementById("bet").value);
 
-document.getElementById("result").innerText="Result: x"+result;
+let spinAngle=Math.random()*360+720;
+
+let duration=2000;
+
+let start=null;
+
+function animate(timestamp){
+
+if(!start) start=timestamp;
+
+let progress=timestamp-start;
+
+let rotation=spinAngle*(progress/duration);
+
+startAngle=rotation*Math.PI/180;
+
+ctx.clearRect(0,0,500,500);
+
+drawWheel();
+
+if(progress<duration){
+
+requestAnimationFrame(animate);
+
+}else{
+
+finishSpin(bet);
+
+}
+
+}
+
+requestAnimationFrame(animate);
+
+}
+
+function finishSpin(bet){
+
+let index=Math.floor(Math.random()*segments.length);
+
+let multiplier=segments[index];
+
+let win=bet*multiplier;
+
+profit+=win-bet;
+
+spins++;
+
+document.getElementById("result").innerText="Multiplier x"+multiplier+" | Win: "+win;
+
+document.getElementById("spins").innerText=spins;
+
+document.getElementById("profit").innerText=profit.toFixed(2);
+
+document.getElementById("last").innerText=multiplier;
 
 }
 
 </script>
 
 </body>
+
 </html>
