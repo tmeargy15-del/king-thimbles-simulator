@@ -1,206 +1,61 @@
 <!DOCTYPE html>
 <html>
 <head>
-
-<title>King Thimbles Pro</title>
+<title>African Gold Simulator</title>
 
 <style>
 
 body{
-background:#0e0e0e;
-color:white;
 font-family:Arial;
 text-align:center;
-}
-
-h1{
-margin-top:40px;
+background:#111;
+color:white;
 }
 
 button{
-padding:12px 25px;
+padding:15px;
 font-size:18px;
-border:none;
-border-radius:8px;
-background:gold;
-cursor:pointer;
 margin-top:20px;
-}
-
-#table{
-width:420px;
-height:220px;
-margin:60px auto;
-position:relative;
-}
-
-.cup{
-
-width:100px;
-height:130px;
-background:gold;
-border-radius:14px;
-
-display:flex;
-align-items:center;
-justify-content:center;
-
-font-size:28px;
-font-weight:bold;
-
-position:absolute;
-
 cursor:pointer;
-
-transition: transform .45s ease;
-
 }
-
-#cup1{ transform: translate(0px,0px); }
-#cup2{ transform: translate(160px,0px); }
-#cup3{ transform: translate(320px,0px); }
 
 #result{
-margin-top:20px;
-font-size:24px;
-}
-
-#prediction{
-margin-top:10px;
-font-size:18px;
-color:#00ffcc;
+font-size:30px;
+margin-top:30px;
+color:gold;
 }
 
 </style>
-
 </head>
 
 <body>
 
-<h1>King Thimbles Pro</h1>
+<h1>African Gold Wheel Simulator</h1>
 
-<button onclick="startGame()">Start Round</button>
+<p>Multipliers: 2.5 , 4 , 4.8 , 12 , 24 , 48 , 300 , 1500</p>
 
-<div id="prediction">AI Prediction: --</div>
+<button onclick="spin()">SPIN</button>
 
-<div id="table">
-
-<div class="cup" id="cup1" onclick="pickCup(1)">1</div>
-<div class="cup" id="cup2" onclick="pickCup(2)">2</div>
-<div class="cup" id="cup3" onclick="pickCup(3)">3</div>
-
-</div>
-
-<div id="result">Press Start Round</div>
+<div id="result"></div>
 
 <script>
 
-let cups
-let positions=[0,160,320]
-let winningCup
-let shuffling=false
+const wheel=[
+2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,
+4,4,4,4,4,4,4,4,4,4,
+4.8,4.8,4.8,4.8,4.8,4.8,4.8,4.8,
+12,12,12,12,12,
+24,24,24,
+48,48,
+300,
+1500
+];
 
-function startGame(){
+function spin(){
 
-cups=[
-document.getElementById("cup1"),
-document.getElementById("cup2"),
-document.getElementById("cup3")
-]
+let result=wheel[Math.floor(Math.random()*wheel.length)];
 
-winningCup=Math.floor(Math.random()*3)+1
-
-showPrediction()
-
-shuffleLoop(20)
-
-}
-
-function showPrediction(){
-
-let pred=Math.floor(Math.random()*3)+1
-let conf=Math.floor(Math.random()*30)+70
-
-document.getElementById("prediction").innerText=
-"AI Prediction: Cup "+pred+" ("+conf+"%)"
-
-}
-
-function shuffleLoop(times){
-
-shuffling=true
-
-let speed=180
-
-let shuffle=setInterval(()=>{
-
-let a=Math.floor(Math.random()*3)
-let b=Math.floor(Math.random()*3)
-
-while(a===b){
-b=Math.floor(Math.random()*3)
-}
-
-crossSwap(a,b)
-
-times--
-
-if(times<=0){
-
-clearInterval(shuffle)
-
-shuffling=false
-
-document.getElementById("result").innerText="Pick a cup"
-
-}
-
-},speed)
-
-}
-
-function crossSwap(a,b){
-
-let temp=positions[a]
-positions[a]=positions[b]
-positions[b]=temp
-
-let lift= -40
-
-cups[a].style.transform =
-"translate("+positions[a]+"px,"+lift+"px)"
-
-cups[b].style.transform =
-"translate("+positions[b]+"px,"+lift+"px)"
-
-setTimeout(()=>{
-
-cups[a].style.transform =
-"translate("+positions[a]+"px,0px)"
-
-cups[b].style.transform =
-"translate("+positions[b]+"px,0px)"
-
-},180)
-
-}
-
-function pickCup(choice){
-
-if(shuffling){
-alert("Wait for shuffle!")
-return
-}
-
-if(choice===winningCup){
-
-document.getElementById("result").innerText="🎉 You Win!"
-
-}else{
-
-document.getElementById("result").innerText="❌ Try Again"
-
-}
+document.getElementById("result").innerText="Result: x"+result;
 
 }
 
