@@ -3,12 +3,12 @@
 
 <head>
 
-<title>Advanced African Gold Simulator</title>
+<title>African Gold Wheel Simulator</title>
 
 <style>
 
 body{
-background:#0b0b0b;
+background:#111;
 color:white;
 font-family:Arial;
 text-align:center;
@@ -31,15 +31,16 @@ border:none;
 cursor:pointer;
 }
 
-.panel{
-margin-top:15px;
-}
-
 #history{
 max-height:120px;
 overflow:auto;
-border:1px solid #555;
+border:1px solid #444;
 padding:5px;
+margin-top:10px;
+}
+
+.panel{
+margin-top:15px;
 }
 
 </style>
@@ -48,20 +49,18 @@ padding:5px;
 
 <body>
 
-<h1>African Gold Probability Simulator</h1>
+<h1>African Gold Simulator</h1>
 
 BET
 
 <br>
 
-<input id="bet" type="number" value="1">
+<input id="bet" type="number" value="1" min="1">
 
 <br>
 
 <button onclick="spin()">SPIN</button>
-
 <button onclick="simulate()">10,000 Spins</button>
-
 <button onclick="exportData()">Export Results</button>
 
 <canvas id="wheel" width="500" height="500"></canvas>
@@ -95,61 +94,63 @@ RTP:
 
 <script>
 
-const segments=[
-2.5,2.5,2.5,2.5,2.5,2.5,
-4,4,4,4,4,
-4.8,4.8,4.8,4.8,
-12,12,12,
+const segments = [
+
+2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,
+4,4,4,4,4,4,
+4.8,4.8,4.8,4.8,4.8,4.8,
+12,12,12,12,
 24,24,
 48,
 300,
 1500
-];
 
-let wheel=document.getElementById("wheel");
-let ctx=wheel.getContext("2d");
+]
 
-let angle=0;
+let wheel=document.getElementById("wheel")
+let ctx=wheel.getContext("2d")
 
-let spins=0;
-let profit=0;
-let totalBet=0;
-let totalWin=0;
+let angle=0
 
-let history=[];
-let counts={};
+let spins=0
+let profit=0
+let totalBet=0
+let totalWin=0
 
-segments.forEach(x=>counts[x]=0);
+let history=[]
+let counts={}
+
+segments.forEach(x=>counts[x]=0)
 
 function drawWheel(){
 
-let arc=2*Math.PI/segments.length;
+let arc=2*Math.PI/segments.length
 
 for(let i=0;i<segments.length;i++){
 
-let a=angle+i*arc;
+let a=angle+i*arc
 
-ctx.beginPath();
+ctx.beginPath()
 
-ctx.fillStyle=`hsl(${i*20},80%,50%)`;
+ctx.fillStyle=`hsl(${i*20},80%,50%)`
 
-ctx.moveTo(250,250);
+ctx.moveTo(250,250)
 
-ctx.arc(250,250,250,a,a+arc);
+ctx.arc(250,250,250,a,a+arc)
 
-ctx.fill();
+ctx.fill()
 
-ctx.save();
+ctx.save()
 
-ctx.translate(250,250);
+ctx.translate(250,250)
 
-ctx.rotate(a+arc/2);
+ctx.rotate(a+arc/2)
 
-ctx.fillStyle="black";
+ctx.fillStyle="black"
 
-ctx.fillText("x"+segments[i],150,0);
+ctx.fillText("x"+segments[i],150,0)
 
-ctx.restore();
+ctx.restore()
 
 }
 
@@ -157,99 +158,103 @@ ctx.restore();
 
 function pointer(){
 
-ctx.fillStyle="red";
+ctx.fillStyle="red"
 
-ctx.beginPath();
+ctx.beginPath()
 
-ctx.moveTo(250,0);
-ctx.lineTo(235,40);
-ctx.lineTo(265,40);
+ctx.moveTo(250,0)
+ctx.lineTo(235,40)
+ctx.lineTo(265,40)
 
-ctx.fill();
+ctx.fill()
 
 }
 
 function render(){
 
-ctx.clearRect(0,0,500,500);
+ctx.clearRect(0,0,500,500)
 
-drawWheel();
+drawWheel()
 
-pointer();
+pointer()
 
 }
 
-render();
+render()
 
 function spin(){
 
-let bet=parseFloat(document.getElementById("bet").value);
+let bet=parseFloat(document.getElementById("bet").value)
 
-let spinAngle=Math.random()*360+720;
+let index=Math.floor(Math.random()*segments.length)
 
-let duration=2000;
+let multiplier=segments[index]
 
-let start=null;
+let arc=360/segments.length
+
+let targetAngle=(360-index*arc)
+
+let spinAngle=targetAngle+720
+
+let duration=2000
+
+let start=null
 
 function animate(t){
 
-if(!start) start=t;
+if(!start) start=t
 
-let progress=t-start;
+let progress=t-start
 
-angle=spinAngle*(progress/duration)*Math.PI/180;
+angle=(spinAngle*(progress/duration))*Math.PI/180
 
-render();
+render()
 
 if(progress<duration){
 
-requestAnimationFrame(animate);
+requestAnimationFrame(animate)
 
 }else{
 
-finish(bet);
+finish(bet,multiplier)
 
 }
 
 }
 
-requestAnimationFrame(animate);
+requestAnimationFrame(animate)
 
 }
 
-function finish(bet){
+function finish(bet,multiplier){
 
-let index=Math.floor(Math.random()*segments.length);
+counts[multiplier]++
 
-let mult=segments[index];
+spins++
 
-counts[mult]++;
+totalBet+=bet
 
-spins++;
+let win=bet*multiplier
 
-totalBet+=bet;
+totalWin+=win
 
-let win=bet*mult;
+profit+=win-bet
 
-totalWin+=win;
+history.unshift(multiplier)
 
-profit+=win-bet;
+if(history.length>30) history.pop()
 
-history.unshift(mult);
+document.getElementById("result").innerText="Result x"+multiplier+" | Win "+win
 
-if(history.length>30) history.pop();
+document.getElementById("spins").innerText=spins
 
-document.getElementById("result").innerText="Result x"+mult+" | Win "+win;
+document.getElementById("profit").innerText=profit.toFixed(2)
 
-document.getElementById("spins").innerText=spins;
+document.getElementById("rtp").innerText=((totalWin/totalBet)*100).toFixed(2)+"%"
 
-document.getElementById("profit").innerText=profit.toFixed(2);
+updateHistory()
 
-document.getElementById("rtp").innerText=((totalWin/totalBet)*100).toFixed(2)+"%";
-
-updateHistory();
-
-updateProb();
+updateProb()
 
 }
 
@@ -257,23 +262,23 @@ function updateHistory(){
 
 document.getElementById("history").innerHTML=
 
-history.map(x=>"x"+x).join(" | ");
+history.map(x=>"x"+x).join(" | ")
 
 }
 
 function updateProb(){
 
-let txt="";
+let txt=""
 
 for(let k in counts){
 
-let p=(counts[k]/spins*100)||0;
+let p=(counts[k]/spins*100)||0
 
-txt+="x"+k+" → "+p.toFixed(2)+"%<br>";
+txt+="x"+k+" → "+p.toFixed(2)+"%<br>"
 
 }
 
-document.getElementById("prob").innerHTML=txt;
+document.getElementById("prob").innerHTML=txt
 
 }
 
@@ -281,7 +286,9 @@ function simulate(){
 
 for(let i=0;i<10000;i++){
 
-finish(1);
+let index=Math.floor(Math.random()*segments.length)
+
+finish(1,segments[index])
 
 }
 
@@ -289,23 +296,23 @@ finish(1);
 
 function exportData(){
 
-let data="Multiplier,Count\n";
+let data="Multiplier,Count\n"
 
 for(let k in counts){
 
-data+=k+","+counts[k]+"\n";
+data+=k+","+counts[k]+"\n"
 
 }
 
-let blob=new Blob([data]);
+let blob=new Blob([data])
 
-let a=document.createElement("a");
+let a=document.createElement("a")
 
-a.href=URL.createObjectURL(blob);
+a.href=URL.createObjectURL(blob)
 
-a.download="simulation.csv";
+a.download="simulation.csv"
 
-a.click();
+a.click()
 
 }
 
@@ -314,4 +321,3 @@ a.click();
 </body>
 
 </html>
-
